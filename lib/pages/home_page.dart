@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:inventur_helper/item_generator.dart';
 
 import '../dialogs/add_barcode_dialog.dart';
 import '../dialogs/clear_itemlist_dialog.dart';
 import '../dialogs/export_itemlist_dialog.dart';
 import '../dialogs/remove_dialog.dart';
+import '../item_util.dart';
 import '../models/item.dart';
 import './scan_page.dart';
 import './inventory_settings_page.dart';
@@ -114,6 +114,14 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (item.owner != null)
+              Text(
+                item.owner!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             Text(
               item.name ?? 'N/A',
               style: TextStyle(
@@ -161,9 +169,8 @@ class _MyHomePageState extends State<MyHomePage> {
           itemCount: _items.length,
           itemBuilder: (BuildContext context, int index) {
             final Item item = lookupItem(_items.elementAt(index));
-            return ListTile(
-              title: Text(item.barcode),
-              subtitle: item.name != null ? Text(item.name!) : null,
+            return itemWidget(
+              item,
               onTap: () => _showItem(item),
               onLongPress: () => _removeSelectedItem(item.barcode),
             );

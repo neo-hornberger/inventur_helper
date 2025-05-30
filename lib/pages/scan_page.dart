@@ -5,7 +5,7 @@ import 'package:flutter_zxing/flutter_zxing.dart';
 
 import '../dialogs/invalid_barcode_dialog.dart';
 import '../dialogs/check_item_dialog.dart';
-import '../item_generator.dart';
+import '../item_util.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});

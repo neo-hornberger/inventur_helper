@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inventur_helper/item_generator.dart';
+import 'package:inventur_helper/item_util.dart';
 
 import '../models/item.dart';
 
@@ -51,14 +51,9 @@ class CheckItemDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Do you want to add "${item.barcode}"?'),
+          const Text('Do you want to add the following item?'),
           const SizedBox(height: 8),
-          Text(
-            item.name ?? 'N/A',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
+          itemWidget(item),
         ],
       );
     }

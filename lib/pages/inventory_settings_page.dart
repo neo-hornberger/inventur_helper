@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
@@ -78,7 +80,15 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
 
     if (file.extension == 'csv') {
       final bytes = file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
-      final csv = String.fromCharCodes(bytes).replaceAll('\r', '');
+      String text;
+      try {
+        text = utf8.decode(bytes);
+      } catch (e) {
+        text = String.fromCharCodes(bytes);
+        // Fallback to ISO-8859-1 if UTF-8 decoding fails
+        // This is a common issue with CSV files that are not UTF-8 encoded.
+      }
+      final csv = text.replaceAll('\r', '');
       final rows = _csvCodec.decoder.convert(csv);
 
       final List<int> cols = await showDialog(
@@ -102,7 +112,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
             .map((row) => Item(
                   (row[cols[0]] as String).trim(),
                   (row[cols[1]] as String).trim(),
-                  cols[2] > 0 ? (row[cols[2]] as String).trim() : null,
+                  cols[2] >= 0 ? (row[cols[2]] as String).trim() : null,
                 ))
             .toSet(),
       );
