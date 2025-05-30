@@ -39,23 +39,23 @@ jobs:
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
       - name: Build APK
-        run: flutter build apk --release
-      - name: Build App Bundle
-        run: flutter build appbundle --release
-      - name: Build IPA
-        run: flutter build ipa --release --no-codesign
-      - name: Compress archives and IPAs
         run: |
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk artifacts/
+      - name: Build App Bundle
+        run: |
+          flutter build appbundle --release
+          cp build/app/outputs/bundle/release/app-release.aab artifacts/
+      - name: Build IPA
+        run: |
+          flutter build ipa --release --no-codesign
           cd build
-          tar -czf ios_build.tar.gz ios
+          tar -czf ../artifacts/ios_build.tar.gz ios
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
-          path: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
-            build/ios_build.tar.gz
+          path: "artifacts/*"
   release:
     name: Release
     runs-on: ubuntu-latest
