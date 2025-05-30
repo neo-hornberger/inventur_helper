@@ -67,7 +67,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
 
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['csv', 'xls', 'xlsx', 'inv'],
+      allowedExtensions: ['csv', 'inv'],
       withReadStream: true,
     );
     if (result == null) {
