@@ -1,0 +1,116 @@
+name: 'Build & Release'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.2'
+          channel: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+      - name: Build APK
+        run: flutter build apk --release
+      - name: Build App Bundle
+        run: flutter build appbundle --release
+      - name: Build IPA
+        run: flutter build ipa --release --no-codesign
+      - name: Compress archives and IPAs
+        run: |
+          cd build
+          tar -czf ios_build.tar.gz ios
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+            build/ios_build.tar.gz
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    if: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Extract version from pubspec.yaml
+        uses: mikefarah/yq@v4
+        id: extract_version
+        with:
+          cmd: yq '.version' pubspec.yaml
+      - name: Update git tag
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function updateTag(tag) {
+              return await github.rest.git.updateRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `tags/${tag}`,
+                sha: context.sha
+              }).catch(res => github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${tag}`,
+                sha: context.sha
+              }));
+            }
+
+            const version = '${{ steps.extract_version.outputs.result }}';
+            const [major, minor, patch] = version.split('.').map(Number);
+            const commit = context.sha.substring(0, 7);
+
+            const reset = '\u001b[33;0m';
+            const cyan = '\u001b[33;36m';
+            core.info(`Version: ${cyan}${version}${reset}`);
+            core.info(`Commit: ${cyan}${commit}${reset}`);
+            core.info('-'.repeat(80));
+
+            for (const tag of [
+              `v${major}.${minor}.${patch}`,
+              `v${major}.${minor}`
+            ]) {
+              await updateTag(tag);
+              core.info(`Updated version tag: ${cyan}${tag}${reset}`);
+            }
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts/
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "artifacts/*"
+          tag: v${{ steps.extract_version.outputs.result }}
