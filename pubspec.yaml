@@ -1,0 +1,29 @@
+name: inventur_helper
+description: Inventur Helper
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  camera: 0.10.6
+  flutter_zxing:
+  bits:
+  barcode_widget:
+  shared_preferences:
+  path_provider:
+  path:
+  file_picker:
+  csv:
+  collection:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
