@@ -22,11 +22,13 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.2'
           channel: 'stable'
+          cache: true
       - name: Install dependencies
         run: flutter pub get
       - name: Decode keystore
@@ -38,6 +40,15 @@ jobs:
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
           echo "storeFile=keystore.jks" >> android/key.properties
+      - name: Cache Android SDK packages
+        uses: actions/cache@v4
+        with:
+          key: ${{ runner.os }}-android-sdk-packages
+          path: |
+            /Users/runner/Library/Android/sdk/ndk/
+            /Users/runner/Library/Android/sdk/cmake/
+      - name: Create artifacts directory
+        run: mkdir -p artifacts
       - name: Build APK
         run: |
           flutter build apk --release
