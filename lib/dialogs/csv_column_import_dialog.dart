@@ -20,6 +20,7 @@ class CsvColumnImportDialog extends StatefulWidget {
 class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
   int? barcodeCol;
   int? descriptionCol;
+  int? ownerCol;
 
   void _onImport() {
     if (barcodeCol == null || descriptionCol == null) {
@@ -29,6 +30,7 @@ class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
     widget.onImport([
       barcodeCol!,
       descriptionCol!,
+      ownerCol ?? -1,
     ]);
   }
 
@@ -67,6 +69,21 @@ class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
                         ))
                     .toList(),
                 onChanged: (value) => setState(() => descriptionCol = value),
+              ),
+            ],
+          ),
+          Wrap(
+            children: [
+              const Text('Owner (optional)'),
+              DropdownButton<int>(
+                value: ownerCol,
+                items: widget.cols
+                    .mapIndexed((i, e) => DropdownMenuItem(
+                          value: i,
+                          child: Text(e.toString()),
+                        ))
+                    .toList(),
+                onChanged: (value) => setState(() => ownerCol = value),
               ),
             ],
           ),

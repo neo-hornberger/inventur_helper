@@ -1,10 +1,12 @@
 class Item {
   final String barcode;
   final String? name;
+  final String? owner;
 
   const Item(
     this.barcode,
     this.name,
+    this.owner,
   );
 
   @override

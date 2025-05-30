@@ -67,7 +67,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
 
     final FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['csv', 'inv'],
+      allowedExtensions: ['csv', 'xls', 'xlsx', 'inv'],
       withReadStream: true,
     );
     if (result == null) {
@@ -80,8 +80,6 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
       final bytes = file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
       final csv = String.fromCharCodes(bytes).replaceAll('\r', '');
       final rows = _csvCodec.decoder.convert(csv);
-
-      print(rows.length);
 
       final List<int> cols = await showDialog(
         // ignore: use_build_context_synchronously
@@ -104,6 +102,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
             .map((row) => Item(
                   (row[cols[0]] as String).trim(),
                   (row[cols[1]] as String).trim(),
+                  cols[2] > 0 ? (row[cols[2]] as String).trim() : null,
                 ))
             .toSet(),
       );

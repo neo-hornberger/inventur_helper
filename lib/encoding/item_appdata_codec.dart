@@ -28,6 +28,8 @@ class _ItemAppdataEncoder extends Converter<Iterable<Item>, List<int>> {
     for (final item in input) {
       writer.writeString(item.barcode);
       writer.writeString(item.name!);
+      writer.writeBit(item.owner != null);
+      if (item.owner != null) writer.writeString(item.owner!);
     }
 
     return buffer.toUInt8List();
@@ -47,8 +49,9 @@ class _ItemAppdataDecoder extends Converter<List<int>, Iterable<Item>> {
     for (var i = 0; i < itemCount; i++) {
       final barcode = reader.readString();
       final name = reader.readString();
+      final owner = reader.readBit() ? reader.readString() : null;
 
-      items.add(Item(barcode, name));
+      items.add(Item(barcode, name, owner));
     }
 
     return items;

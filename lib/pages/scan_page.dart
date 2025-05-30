@@ -86,7 +86,6 @@ class _ScanPageState extends State<ScanPage> {
             borderLength: 25,
           ),
           onScan: _onBarcodeScanned,
-          onScanFailure: (p0) => print('Scan failed'),
         ),
       ),
     );
