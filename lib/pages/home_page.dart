@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 
 import '../dialogs/add_barcode_dialog.dart';
 import '../dialogs/clear_itemlist_dialog.dart';
@@ -88,14 +89,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _exportScanList() {
-    showDialog(
+  void _exportScanList() async {
+    ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
+    await showDialog(
       context: context,
       builder: (context) => ExportItemlistDialog(
         items: _items,
         onCancel: () => Navigator.pop(context),
       ),
     );
+    ScreenBrightness.instance.resetApplicationScreenBrightness();
   }
 
   void _showInventorySettings() {
