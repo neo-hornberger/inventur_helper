@@ -18,6 +18,8 @@ Item lookupItem(String barcode) {
 Set<String> barcodeToItems(Code barcode) {
   if (barcode.format == Format.code128) {
     return {_code128ToItem(barcode)};
+  } else if (barcode.format == Format.dataMatrix) {
+    return {_dataMatrixToItem(barcode)};
   } else if (barcode.format == Format.qrCode) {
     return _qrCodeToItems(barcode);
   } else {
@@ -27,6 +29,11 @@ Set<String> barcodeToItems(Code barcode) {
 
 String _code128ToItem(Code barcode) {
   assert(barcode.format == Format.code128, 'Invalid barcode format: ${barcode.format?.name}');
+  return barcode.text!;
+}
+
+String _dataMatrixToItem(Code barcode) {
+  assert(barcode.format == Format.dataMatrix, 'Invalid barcode format: ${barcode.format?.name}');
   return barcode.text!;
 }
 

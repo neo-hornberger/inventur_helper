@@ -16,7 +16,7 @@ class InvalidBarcodeDialog extends StatelessWidget {
     return AlertDialog(
       title: const Text('Invalid barcode'),
       content: Wrap(children: [
-        const Text('The scanned barcode is not a valid QR code or Code 128 barcode.'),
+        Text('The scanned barcode is not a valid ${Format.qrCode.name}, ${Format.code128.name} barcode or ${Format.dataMatrix.name}.'),
         const SizedBox(height: 15),
         Text(
           'The scanned barcode is of type "${barcode.format?.name}".',

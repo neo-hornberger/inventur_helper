@@ -24,7 +24,7 @@ class _ScanPageState extends State<ScanPage> {
 
     _processing = true;
 
-    if (barcode.format != Format.qrCode && barcode.format != Format.code128) {
+    if (barcode.format != Format.qrCode && barcode.format != Format.code128 && barcode.format != Format.dataMatrix) {
       showDialog(
         context: context,
         builder: (context) => InvalidBarcodeDialog(
@@ -76,6 +76,9 @@ class _ScanPageState extends State<ScanPage> {
       body: Center(
         child: ReaderWidget(
           tryHarder: true,
+          tryInverted: true,
+          tryRotate: true,
+          tryDownscale: true,
           showGallery: false,
           cropPercent: scannerCropPercent,
           scannerOverlay: ScannerOverlayBorder(
