@@ -96,7 +96,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
         context: context,
         builder: (context) => CsvColumnImportDialog(
           cols: rows.first,
-          onCancel: () => Navigator.pop(context, []),
+          onCancel: () => Navigator.pop(context, <int>[]),
           onImport: (cols) => Navigator.pop(context, cols),
         ),
       );
