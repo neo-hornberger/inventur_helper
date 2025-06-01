@@ -18,72 +18,81 @@ class CsvColumnImportDialog extends StatefulWidget {
 }
 
 class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
-  int? barcodeCol;
-  int? descriptionCol;
-  int? ownerCol;
+  int? _barcodeCol;
+  int? _descriptionCol;
+  int? _ownerCol;
 
   void _onImport() {
-    if (barcodeCol == null || descriptionCol == null) {
+    if (_barcodeCol == null || _descriptionCol == null) {
       return;
     }
 
     widget.onImport([
-      barcodeCol!,
-      descriptionCol!,
-      ownerCol ?? -1,
+      _barcodeCol!,
+      _descriptionCol!,
+      _ownerCol ?? -1,
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.labelMedium;
+
     return AlertDialog(
       title: const Text('CSV Import'),
       content: Wrap(
+        direction: Axis.vertical,
         children: [
           const Text('Select the columns to import:'),
-          const SizedBox(height: 48),
+          const SizedBox(height: 24),
           Wrap(
+            direction: Axis.vertical,
             children: [
-              const Text('Barcode'),
+              if (_barcodeCol != null) Text('Barcode', style: labelStyle),
               DropdownButton<int>(
-                value: barcodeCol,
+                value: _barcodeCol,
                 items: widget.cols
                     .mapIndexed((i, e) => DropdownMenuItem(
                           value: i,
                           child: Text(e.toString()),
                         ))
                     .toList(),
-                onChanged: (value) => setState(() => barcodeCol = value),
+                onChanged: (value) => setState(() => _barcodeCol = value),
+                hint: const Text('Barcode'),
               ),
             ],
           ),
           Wrap(
+            direction: Axis.vertical,
             children: [
-              const Text('Description'),
+              if (_descriptionCol != null) Text('Description', style: labelStyle),
               DropdownButton<int>(
-                value: descriptionCol,
+                value: _descriptionCol,
                 items: widget.cols
                     .mapIndexed((i, e) => DropdownMenuItem(
                           value: i,
                           child: Text(e.toString()),
                         ))
                     .toList(),
-                onChanged: (value) => setState(() => descriptionCol = value),
+                onChanged: (value) => setState(() => _descriptionCol = value),
+                hint: const Text('Description'),
               ),
             ],
           ),
           Wrap(
+            direction: Axis.vertical,
             children: [
-              const Text('Owner (optional)'),
+              if (_ownerCol != null) Text('Owner (optional)', style: labelStyle),
               DropdownButton<int>(
-                value: ownerCol,
+                value: _ownerCol,
                 items: widget.cols
                     .mapIndexed((i, e) => DropdownMenuItem(
                           value: i,
                           child: Text(e.toString()),
                         ))
                     .toList(),
-                onChanged: (value) => setState(() => ownerCol = value),
+                onChanged: (value) => setState(() => _ownerCol = value),
+                hint: const Text('Owner (optional)'),
               ),
             ],
           ),
