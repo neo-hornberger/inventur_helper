@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
 
@@ -24,7 +22,9 @@ class _ScanPageState extends State<ScanPage> {
 
     _processing = true;
 
-    if (barcode.format != Format.qrCode && barcode.format != Format.code128 && barcode.format != Format.dataMatrix) {
+    if (barcode.format != Format.qrCode &&
+        barcode.format != Format.code128 &&
+        barcode.format != Format.dataMatrix) {
       showDialog(
         context: context,
         builder: (context) => InvalidBarcodeDialog(
@@ -66,9 +66,7 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     const double scannerCropPercent = .7;
-    final Size size = MediaQuery.of(context).size;
-    final double cropSize = min(size.width, size.height) * scannerCropPercent;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scan'),
@@ -81,8 +79,9 @@ class _ScanPageState extends State<ScanPage> {
           tryDownscale: true,
           showGallery: false,
           cropPercent: scannerCropPercent,
-          scannerOverlay: ScannerOverlayBorder(
-            cutOutSize: cropSize,
+          scannerOverlay: const ScannerOverlayBorder(
+            cutOutSize: scannerCropPercent,
+            verticalOffset: 0.2,
             borderColor: Colors.white,
             borderWidth: 5,
             borderRadius: 10,
