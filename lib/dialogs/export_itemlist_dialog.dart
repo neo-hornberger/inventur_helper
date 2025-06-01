@@ -27,6 +27,7 @@ class ExportItemlistDialog extends StatelessWidget {
           BarcodeWidget(
             barcode: _qrCode,
             data: itemQrCodec.encode(items),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ],
       ),
