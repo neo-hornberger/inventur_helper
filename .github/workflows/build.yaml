@@ -119,7 +119,8 @@ jobs:
 
             for (const tag of [
               `v${major}.${minor}.${patch}`,
-              `v${major}.${minor}`
+              `v${major}.${minor}`,
+              `v${major}`
             ]) {
               await updateTag(tag);
               core.info(`Updated version tag: ${cyan}${tag}${reset}`);
