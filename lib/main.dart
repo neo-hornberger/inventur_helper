@@ -21,7 +21,6 @@ class MyApp extends StatelessWidget {
   }
 
   void _handleAppLink(Uri uri) {
-    debugPrint('Received URI: $uri');
     assert(uri.isScheme('app'), 'Invalid URI scheme: ${uri.scheme}');
     assert(uri.host == 'dev.hornberger.inventur_helper', 'Invalid URI host: ${uri.host}');
 
@@ -32,8 +31,6 @@ class MyApp extends StatelessWidget {
 
       // Reset shared items notifier
       _sharedItemsNotifier.value = null;
-    } else {
-      debugPrint('Invalid URI path segments: ${uri.pathSegments}');
     }
   }
 

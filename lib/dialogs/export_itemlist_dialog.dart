@@ -1,5 +1,6 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../encoding/item_qr_codec.dart';
 
@@ -17,6 +18,8 @@ class ExportItemlistDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String encodedItems = itemQrCodec.encode(items);
+
     return AlertDialog(
       title: const Text('Export scanned items'),
       content: Column(
@@ -26,8 +29,18 @@ class ExportItemlistDialog extends StatelessWidget {
           const SizedBox(height: 32.0),
           BarcodeWidget(
             barcode: _qrCode,
-            data: itemQrCodec.encode(items),
+            data: encodedItems,
             color: Theme.of(context).colorScheme.onSurface,
+          ),
+          const SizedBox(height: 16.0),
+          ElevatedButton(
+            onPressed: () {
+              SharePlus.instance.share(ShareParams(
+                title: 'Exported item list from "Inventur Helper"',
+                uri: Uri.parse('app://dev.hornberger.inventur_helper/shared_items#$encodedItems'),
+              ));
+            },
+            child: const Text('Share'),
           ),
         ],
       ),
