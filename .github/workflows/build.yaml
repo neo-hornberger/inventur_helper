@@ -51,10 +51,8 @@ jobs:
       - name: Create artifacts directory
         run: mkdir -p artifacts
       - name: Extract name from pubspec.yaml
-        uses: mikefarah/yq@v4
         id: extract_name
-        with:
-          cmd: yq '.name' pubspec.yaml
+        run: grep '^name:' pubspec.yaml | awk '{print "result="$2}' >> $GITHUB_OUTPUT
       - name: Build APK
         run: |
           flutter build apk --release
@@ -89,10 +87,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Extract version from pubspec.yaml
-        uses: mikefarah/yq@v4
         id: extract_version
-        with:
-          cmd: yq '.version' pubspec.yaml
+        run: grep '^version:' pubspec.yaml | awk '{print "result="$2}' | cut -d '+' -f 1 >> $GITHUB_OUTPUT
       - name: Update git tag
         uses: actions/github-script@v7
         with:
