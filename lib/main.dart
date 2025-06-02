@@ -1,3 +1,5 @@
+import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import './pages/home_page.dart';
@@ -8,11 +10,32 @@ void main() {
 
   Preferences();
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ValueNotifier<String?> _sharedItemsNotifier = ValueNotifier(null);
+
+  MyApp({super.key}) {
+    AppLinks().uriLinkStream.listen(_handleAppLink);
+  }
+
+  void _handleAppLink(Uri uri) {
+    debugPrint('Received URI: $uri');
+    assert(uri.isScheme('app'), 'Invalid URI scheme: ${uri.scheme}');
+    assert(uri.host == 'dev.hornberger.inventur_helper', 'Invalid URI host: ${uri.host}');
+
+    if (listEquals(uri.pathSegments, ['shared_items'])) {
+      if (uri.hasFragment) {
+        _sharedItemsNotifier.value = uri.fragment;
+      }
+
+      // Reset shared items notifier
+      _sharedItemsNotifier.value = null;
+    } else {
+      debugPrint('Invalid URI path segments: ${uri.pathSegments}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +57,10 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Inventur Helper'),
+      home: MyHomePage(
+        title: 'Inventur Helper',
+        sharedItemsNotifier: _sharedItemsNotifier,
+      ),
     );
   }
 }

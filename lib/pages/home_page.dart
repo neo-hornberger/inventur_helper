@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 import '../dialogs/add_barcode_dialog.dart';
+import '../dialogs/check_item_dialog.dart';
 import '../dialogs/clear_itemlist_dialog.dart';
 import '../dialogs/export_itemlist_dialog.dart';
 import '../dialogs/remove_dialog.dart';
+import '../encoding/item_qr_codec.dart';
 import '../item_util.dart';
 import '../models/item.dart';
 import './scan_page.dart';
@@ -12,8 +14,13 @@ import './inventory_settings_page.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
+  final ValueNotifier<String?>? sharedItemsNotifier;
 
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({
+    super.key,
+    required this.title,
+    this.sharedItemsNotifier,
+  });
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -141,6 +148,39 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
+  }
+
+  void _importSharedItems() async {
+    if (widget.sharedItemsNotifier?.value == null) return;
+
+    final String sharedItems = widget.sharedItemsNotifier!.value!;
+    final Set<String> items = itemQrCodec.decode(sharedItems).toSet();
+    final bool? addItems = await showDialog(
+      context: context,
+      builder: (context) => CheckItemDialog(
+        items: items,
+        onCancel: () => Navigator.pop(context),
+        onAdd: () => Navigator.pop(context, true),
+      ),
+    );
+
+    if (addItems != null && addItems) {
+      _addItems(items);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.sharedItemsNotifier?.addListener(_importSharedItems);
+  }
+
+  @override
+  void dispose() {
+    widget.sharedItemsNotifier?.removeListener(_importSharedItems);
+
+    super.dispose();
   }
 
   @override
