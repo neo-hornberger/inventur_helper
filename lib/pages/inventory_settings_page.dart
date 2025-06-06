@@ -4,8 +4,8 @@ import 'package:collection/collection.dart';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:inventur_helper/dialogs/csv_column_import_dialog.dart';
 
+import '../dialogs/csv_column_import_dialog.dart';
 import '../dialogs/inventory_name_dialog.dart';
 import '../dialogs/remove_dialog.dart';
 import '../models/item.dart';

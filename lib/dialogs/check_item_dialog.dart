@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:inventur_helper/item_util.dart';
 
+import '../item_util.dart';
 import '../models/item.dart';
 
 class CheckItemDialog extends StatelessWidget {
