@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,25 +9,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './encoding/item_appdata_codec.dart';
 import './models/inventory.dart';
 import './models/item.dart';
+import 'encoding/item_qr_codec.dart';
 
 class Preferences {
-  static final Preferences _instance = Preferences._internal();
+  static final Preferences _instance = Preferences._();
 
-  late SharedPreferences _prefs;
+  late SharedPreferencesWithCache _prefs;
   late Directory _appDir;
+
+  Preferences._();
 
   factory Preferences() => _instance;
 
-  Preferences._internal() {
-    SharedPreferences.getInstance().then((prefs) => _prefs = prefs);
-    getApplicationDocumentsDirectory().then((dir) => _appDir = dir);
+  Future<void> init() async {
+    _prefs = await SharedPreferencesWithCache.create(
+      cacheOptions: const SharedPreferencesWithCacheOptions(),
+    );
+
+    if (!kIsWeb) {
+      _appDir = await getApplicationDocumentsDirectory();
+    }
   }
 
   Inventory? get inventory => getInventory(_prefs.getString('inventory') ?? '');
 
-  void selectInventory(String name) {
-    _prefs.setString('inventory', name);
-  }
+  void selectInventory(String name) => _prefs.setString('inventory', name);
 
   File? _inventoryFile(String name) {
     if (name.isEmpty) {
@@ -54,41 +62,83 @@ class Preferences {
     return file;
   }
 
-  Inventory? getInventory(String name) {
-    final file = _inventoryFile(name);
-
-    if (file == null) {
+  List<int>? _inventory(String name) {
+    if (name.isEmpty) {
+      return null;
+    }
+    if (!_prefs.containsKey('inventories')) {
       return null;
     }
 
-    return Inventory(name, itemAppdataCodec.decode(file.readAsBytesSync()).toSet());
+    final entry = _prefs.getStringList('inventories')!.firstWhere(
+          (inv) => inv.startsWith('$name:'),
+          orElse: () => '',
+        );
+
+    if (entry.isEmpty) {
+      return null;
+    }
+
+    final value = entry.substring(name.length + 1);
+
+    if (kIsWeb) {
+      return base64Url.decode(value);
+    } else {
+      final file = File(p.join(_appDir.path, value));
+
+      if (!file.existsSync()) {
+        throw Exception('Inventory file does not exist: $value');
+      }
+
+      return file.readAsBytesSync();
+    }
   }
 
-  void addInventory(String name, {Set<Item>? items, List<int>? bytes}) {
-    if (items == null && bytes == null) {
+  Inventory? getInventory(String name) {
+    final bytes = _inventory(name);
+
+    if (bytes == null) {
+      return null;
+    }
+
+    return Inventory(name, itemAppdataCodec.decode(bytes).toSet());
+  }
+
+  void addInventory(String name, {List<int>? bytes, Set<Item>? items}) {
+    if (bytes == null && items == null) {
       throw Exception('Either items or bytes must be provided');
     }
-    if (items != null && bytes != null) {
+    if (bytes != null && items != null) {
       throw Exception('Only one of items or bytes can be provided');
     }
 
-    final file = File(p.join(_appDir.path, '$name.inv'));
-    file.writeAsBytesSync(bytes ?? itemAppdataCodec.encode(items!));
+    bytes ??= itemAppdataCodec.encode(items!);
+
+    late String value;
+    if (!kIsWeb) {
+      final file = File(p.join(_appDir.path, '$name.inv'));
+      file.writeAsBytesSync(bytes);
+      value = '$name.inv';
+    } else {
+      value = base64Url.encode(bytes);
+    }
 
     final inventories = _prefs.getStringList('inventories') ?? [];
-    inventories.add('$name:$name.inv');
+    inventories.add('$name:$value');
     _prefs.setStringList('inventories', inventories);
   }
 
   void removeInventory(String name) {
-    final file = _inventoryFile(name);
+    if (!kIsWeb) {
+      final file = _inventoryFile(name);
 
-    if (file == null) {
-      return;
+      if (file == null) {
+        return;
+      }
+
+      // remove inventory file
+      file.deleteSync();
     }
-
-    // remove inventory file
-    file.deleteSync();
 
     // remove inventory from list
     final inventories = _prefs.getStringList('inventories')!;
@@ -108,4 +158,14 @@ class Preferences {
 
     return _prefs.getStringList('inventories')!.map((inv) => inv.split(':')[0]).toSet();
   }
+
+  Set<String> get items => itemQrCodec.decode(_prefs.getString('items') ?? '').toSet();
+  
+  set items(Set<String> items) => _prefs.setString('items', itemQrCodec.encode(items));
+
+  void addItems(Iterable<String> items) => this.items = this.items..addAll(items);
+
+  void removeItem(String item) => items = items..remove(item);
+
+  void clearItems() => items = items..clear();
 }

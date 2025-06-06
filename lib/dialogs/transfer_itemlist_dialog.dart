@@ -6,11 +6,11 @@ import '../encoding/item_qr_codec.dart';
 
 final Barcode _qrCode = Barcode.qrCode(errorCorrectLevel: BarcodeQRCorrectionLevel.high);
 
-class ExportItemlistDialog extends StatelessWidget {
+class TransferItemlistDialog extends StatelessWidget {
   final Iterable<String> items;
   final void Function() onCancel;
 
-  const ExportItemlistDialog({
+  const TransferItemlistDialog({
     super.key,
     required this.items,
     required this.onCancel,
@@ -21,7 +21,7 @@ class ExportItemlistDialog extends StatelessWidget {
     final String encodedItems = itemQrCodec.encode(items);
 
     return AlertDialog(
-      title: const Text('Export scanned items'),
+      title: const Text('Transfer scanned items'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

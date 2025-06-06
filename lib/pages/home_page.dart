@@ -4,11 +4,12 @@ import 'package:screen_brightness/screen_brightness.dart';
 import '../dialogs/add_barcode_dialog.dart';
 import '../dialogs/check_item_dialog.dart';
 import '../dialogs/clear_itemlist_dialog.dart';
-import '../dialogs/export_itemlist_dialog.dart';
+import '../dialogs/transfer_itemlist_dialog.dart';
 import '../dialogs/remove_dialog.dart';
 import '../encoding/item_qr_codec.dart';
 import '../item_util.dart';
 import '../models/item.dart';
+import '../preferences.dart';
 import './scan_page.dart';
 import './inventory_settings_page.dart';
 
@@ -27,38 +28,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Set<String> _items = {};
+  void _addItems(Iterable<String> items) => setState(() => Preferences().addItems(items));
 
-  void _addItems(Iterable<String> items) {
-    setState(() {
-      _items.addAll(items);
-    });
-  }
+  void _removeItem(String item) => setState(() => Preferences().removeItem(item));
 
-  void _removeItem(String item) {
-    setState(() {
-      _items.remove(item);
-    });
-  }
+  void _clearItems() => setState(() => Preferences().clearItems());
 
-  void _clearItems() {
-    setState(() {
-      _items.clear();
-    });
-  }
-
-  void _addBarcode() {
-    showDialog(
-      context: context,
-      builder: (context) => AddBarcodeDialog(
-        onCancel: () => Navigator.pop(context),
-        onAdd: (String barcode) {
-          _addItems([barcode]);
-        },
-        onDone: () => Navigator.pop(context),
-      ),
-    );
-  }
+  void _addBarcode() => showDialog(
+        context: context,
+        builder: (context) => AddBarcodeDialog(
+          onCancel: () => Navigator.pop(context),
+          onAdd: (String barcode) {
+            _addItems([barcode]);
+          },
+          onDone: () => Navigator.pop(context),
+        ),
+      );
 
   void _scanBarcode() async {
     final Set<String>? items =
@@ -69,39 +54,35 @@ class _MyHomePageState extends State<MyHomePage> {
     _addItems(items);
   }
 
-  void _removeSelectedItem(String item) {
-    showDialog(
-      context: context,
-      builder: (context) => RemoveDialog.item(
-        item: item,
-        onCancel: () => Navigator.pop(context),
-        onRemove: () {
-          _removeItem(item);
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
+  void _removeSelectedItem(String item) => showDialog(
+        context: context,
+        builder: (context) => RemoveDialog.item(
+          item: item,
+          onCancel: () => Navigator.pop(context),
+          onRemove: () {
+            _removeItem(item);
+            Navigator.pop(context);
+          },
+        ),
+      );
 
-  void _clearScanList() {
-    showDialog(
-      context: context,
-      builder: (context) => ClearItemlistDialog(
-        onCancel: () => Navigator.pop(context),
-        onClear: () {
-          _clearItems();
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
+  void _clearScanList() => showDialog(
+        context: context,
+        builder: (context) => ClearItemlistDialog(
+          onCancel: () => Navigator.pop(context),
+          onClear: () {
+            _clearItems();
+            Navigator.pop(context);
+          },
+        ),
+      );
 
-  void _exportScanList() async {
+  void _transferScanList() async {
     ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
     await showDialog(
       context: context,
-      builder: (context) => ExportItemlistDialog(
-        items: _items,
+      builder: (context) => TransferItemlistDialog(
+        items: Preferences().items,
         onCancel: () => Navigator.pop(context),
       ),
     );
@@ -109,46 +90,45 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showInventorySettings() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const InventorySettingsPage())).then((_) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const InventorySettingsPage()))
+        .then((_) {
       // Refresh the state of the app when returning from the inventory settings page
       setState(() {});
     });
   }
 
-  void _showItem(Item item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(item.barcode),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (item.owner != null)
+  void _showItem(Item item) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(item.barcode),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (item.owner != null)
+                Text(
+                  item.owner!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               Text(
-                item.owner!,
+                item.name ?? 'N/A',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
-            Text(
-              item.name ?? 'N/A',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
+      );
 
   void _importSharedItems() async {
     if (widget.sharedItemsNotifier?.value == null) return;
@@ -186,6 +166,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final Set<String> items = Preferences().items;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -193,25 +175,43 @@ class _MyHomePageState extends State<MyHomePage> {
         foregroundColor: theme.colorScheme.onPrimary,
         actions: [
           IconButton(
-            onPressed: () => _showInventorySettings(),
-            icon: const Icon(Icons.inventory_2),
-          ),
-          IconButton(
-            onPressed: () => _exportScanList(),
+            onPressed: () => _transferScanList(),
             icon: const Icon(Icons.qr_code_2),
+            tooltip: 'Transfer Scan List',
           ),
-          IconButton(
-            onPressed: () => _clearScanList(),
-            icon: const Icon(Icons.delete),
+          MenuAnchor(
+            menuChildren: [
+              MenuItemButton(
+                onPressed: () => _showInventorySettings(),
+                leadingIcon: const Icon(Icons.inventory_2),
+                child: const Text('Inventories'),
+              ),
+              MenuItemButton(
+                onPressed: () => _clearScanList(),
+                leadingIcon: const Icon(Icons.delete),
+                child: const Text('Clear Scan List'),
+              ),
+            ],
+            builder: (context, controller, child) => IconButton(
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: const Icon(Icons.more_vert),
+              tooltip: 'More Actions',
+            ),
           ),
         ],
       ),
       body: Center(
         child: ListView.separated(
           padding: const EdgeInsets.all(8.0),
-          itemCount: _items.length,
+          itemCount: items.length,
           itemBuilder: (BuildContext context, int index) {
-            final Item item = lookupItem(_items.elementAt(index));
+            final Item item = lookupItem(items.elementAt(index));
             return itemWidget(
               item,
               onTap: () => _showItem(item),

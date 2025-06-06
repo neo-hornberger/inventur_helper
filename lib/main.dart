@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import './pages/home_page.dart';
 import './preferences.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Preferences();
+  await Preferences().init();
 
   runApp(MyApp());
 }
