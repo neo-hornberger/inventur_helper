@@ -6,8 +6,8 @@ on:
       - master
       - dev
     paths:
-      - '.github/workflows/build.yaml'
       - '!.github/workflows/**'
+      - '.github/workflows/build.yaml'
   pull_request:
     branches:
       - master
