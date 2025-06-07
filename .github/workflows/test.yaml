@@ -17,7 +17,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'gradle'
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -34,6 +33,7 @@ jobs:
         uses: dorny/test-reporter@v2
         if: ${{ !cancelled() }}
         with:
-          name: Flutter Tests
+          name: 'Flutter Tests'
           path: test_results.json
-          reporter: flutter-json
+          reporter: 'flutter-json'
+          badge-title: 'Flutter Tests'
