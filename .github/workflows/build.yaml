@@ -5,6 +5,9 @@ on:
     branches:
       - master
       - dev
+    paths:
+      - '.github/workflows/build.yaml'
+      - '!.github/workflows/**'
   pull_request:
     branches:
       - master
@@ -76,7 +79,7 @@ jobs:
         run: |
           cd build/ios/iphoneos
           mkdir Payload
-          cp Runner.app Payload/
+          cp -R Runner.app Payload/
           zip -r ../artifacts/${{ steps.extract_name.outputs.result }}.ipa Payload
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
