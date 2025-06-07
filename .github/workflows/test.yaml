@@ -1,0 +1,41 @@
+name: 'Test'
+
+on:
+  push:
+    branches:
+      - **
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.2'
+          channel: 'stable'
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze code
+        run: flutter analyze --no-pub
+      - name: Run tests
+        run: flutter test --file-reporter 'json:test_result.json'
+      - name: Report test results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Flutter Tests
+          path: test_results.json
+          reporter: flutter-json
