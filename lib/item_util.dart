@@ -9,10 +9,10 @@ Item lookupItem(String barcode) {
   final inv = Preferences().inventory;
 
   if (inv == null) {
-    return Item(barcode, null, null);
+    return Item(barcode, null, null, {});
   }
 
-  return inv.items.firstWhere((item) => item.barcode == barcode, orElse: () => Item(barcode, null, null));
+  return inv.items.firstWhere((item) => item.barcode == barcode, orElse: () => Item(barcode, null, null, {}));
 }
 
 Set<String> barcodeToItems(Code barcode) {

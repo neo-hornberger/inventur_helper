@@ -21,6 +21,7 @@ class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
   int? _barcodeCol;
   int? _descriptionCol;
   int? _ownerCol;
+  int? _statusCol;
 
   void _onImport() {
     if (_barcodeCol == null || _descriptionCol == null) {
@@ -31,6 +32,7 @@ class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
       _barcodeCol!,
       _descriptionCol!,
       _ownerCol ?? -1,
+      _statusCol ?? -1,
     ]);
   }
 
@@ -45,57 +47,10 @@ class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
         children: [
           const Text('Select the columns to import:'),
           const SizedBox(height: 24),
-          Wrap(
-            direction: Axis.vertical,
-            children: [
-              if (_barcodeCol != null) Text('Barcode', style: labelStyle),
-              DropdownButton<int>(
-                value: _barcodeCol,
-                items: widget.cols
-                    .mapIndexed((i, e) => DropdownMenuItem(
-                          value: i,
-                          child: Text(e.toString()),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => _barcodeCol = value),
-                hint: const Text('Barcode'),
-              ),
-            ],
-          ),
-          Wrap(
-            direction: Axis.vertical,
-            children: [
-              if (_descriptionCol != null) Text('Description', style: labelStyle),
-              DropdownButton<int>(
-                value: _descriptionCol,
-                items: widget.cols
-                    .mapIndexed((i, e) => DropdownMenuItem(
-                          value: i,
-                          child: Text(e.toString()),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => _descriptionCol = value),
-                hint: const Text('Description'),
-              ),
-            ],
-          ),
-          Wrap(
-            direction: Axis.vertical,
-            children: [
-              if (_ownerCol != null) Text('Owner (optional)', style: labelStyle),
-              DropdownButton<int>(
-                value: _ownerCol,
-                items: widget.cols
-                    .mapIndexed((i, e) => DropdownMenuItem(
-                          value: i,
-                          child: Text(e.toString()),
-                        ))
-                    .toList(),
-                onChanged: (value) => setState(() => _ownerCol = value),
-                hint: const Text('Owner (optional)'),
-              ),
-            ],
-          ),
+          _buildInput('Barcode', labelStyle, _barcodeCol, (col) => _barcodeCol = col),
+          _buildInput('Description', labelStyle, _descriptionCol, (col) => _descriptionCol = col),
+          _buildInput('Owner (optional)', labelStyle, _ownerCol, (col) => _ownerCol = col),
+          _buildInput('Status (optional)', labelStyle, _statusCol, (col) => _statusCol = col),
         ],
       ),
       actions: [
@@ -110,4 +65,22 @@ class _CsvColumnImportDialogState extends State<CsvColumnImportDialog> {
       ],
     );
   }
+
+  Widget _buildInput(String text, TextStyle? labelStyle, int? col, void Function(int?) onChanged) => Wrap(
+        direction: Axis.vertical,
+        children: [
+          if (col != null) Text(text, style: labelStyle),
+          DropdownButton<int>(
+            value: col,
+            items: widget.cols
+                .mapIndexed((i, e) => DropdownMenuItem(
+                      value: i,
+                      child: Text(e.toString()),
+                    ))
+                .toList(),
+            onChanged: (value) => setState(() => onChanged(value)),
+            hint: Text(text),
+          ),
+        ],
+      );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inventur_helper/dialogs/export_itemlist_dialog.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 import '../dialogs/add_barcode_dialog.dart';
@@ -88,6 +89,15 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     ScreenBrightness.instance.resetApplicationScreenBrightness();
   }
+
+  void _exportScanList() => showDialog(
+        context: context,
+        builder: (context) => ExportItemlistDialog(
+          inventory: Preferences().inventory,
+          items: Preferences().items,
+          onCancel: () => Navigator.pop(context),
+        ),
+      );
 
   void _showInventorySettings() {
     Navigator.push(context, MaterialPageRoute(builder: (context) => const InventorySettingsPage()))
@@ -185,6 +195,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () => _showInventorySettings(),
                 leadingIcon: const Icon(Icons.inventory_2),
                 child: const Text('Inventories'),
+              ),
+              MenuItemButton(
+                onPressed: () => _exportScanList(),
+                leadingIcon: const Icon(Icons.save_alt),
+                child: const Text('Export Scan List'),
               ),
               MenuItemButton(
                 onPressed: () => _clearScanList(),

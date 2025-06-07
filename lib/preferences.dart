@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -6,10 +5,11 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import './encoding/base64_url_codec.dart';
 import './encoding/item_appdata_codec.dart';
+import './encoding/item_qr_codec.dart';
 import './models/inventory.dart';
 import './models/item.dart';
-import 'encoding/item_qr_codec.dart';
 
 class Preferences {
   static final Preferences _instance = Preferences._();
@@ -82,7 +82,7 @@ class Preferences {
     final value = entry.substring(name.length + 1);
 
     if (kIsWeb) {
-      return base64Url.decode(value);
+      return base64url.decode(value);
     } else {
       final file = File(p.join(_appDir.path, value));
 
@@ -120,7 +120,7 @@ class Preferences {
       file.writeAsBytesSync(bytes);
       value = '$name.inv';
     } else {
-      value = base64Url.encode(bytes);
+      value = base64url.encode(bytes);
     }
 
     final inventories = _prefs.getStringList('inventories') ?? [];

@@ -11,11 +11,12 @@ import '../dialogs/remove_dialog.dart';
 import '../models/item.dart';
 import '../preferences.dart';
 
-final CsvCodec _csvCodec = CsvCodec(
+final CsvCodec csvCodec = CsvCodec(
   fieldDelimiter: ';',
   textDelimiter: '"',
   eol: '\n',
 );
+
 final RegExp _barcodeRegExp = RegExp(r'^\d{4}-\d{6}$');
 
 class InventorySettingsPage extends StatefulWidget {
@@ -79,7 +80,8 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
     final PlatformFile file = result.files.first;
 
     if (file.extension == 'csv') {
-      final bytes = file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
+      final bytes =
+          file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
       String text;
       try {
         text = utf8.decode(bytes);
@@ -89,7 +91,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
         // This is a common issue with CSV files that are not UTF-8 encoded.
       }
       final csv = text.replaceAll('\r', '');
-      final rows = _csvCodec.decoder.convert(csv);
+      final rows = csvCodec.decoder.convert(csv);
 
       final List<int> cols = await showDialog(
         // ignore: use_build_context_synchronously
@@ -113,11 +115,19 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
                   (row[cols[0]] as String).trim(),
                   (row[cols[1]] as String).trim(),
                   cols[2] >= 0 ? (row[cols[2]] as String).trim() : null,
+                  cols[3] >= 0
+                      ? (row[cols[3]] as String)
+                          .split(',')
+                          .map((status) => ItemStatus.fromCode(status.trim()))
+                          .whereNotNull()
+                          .toSet()
+                      : {},
                 ))
             .toSet(),
       );
     } else if (file.extension == 'inv') {
-      final bytes = file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
+      final bytes =
+          file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
 
       _prefs.addInventory(name, bytes: bytes);
     } else {

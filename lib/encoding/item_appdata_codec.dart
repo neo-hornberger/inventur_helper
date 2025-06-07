@@ -30,6 +30,7 @@ class _ItemAppdataEncoder extends Converter<Iterable<Item>, List<int>> {
       writer.writeString(item.name!);
       writer.writeBit(item.owner != null);
       if (item.owner != null) writer.writeString(item.owner!);
+      writer.writeBits(item.status.fold(0, (bits, status) => bits | (1 << status.index)), ItemStatus.values.length);
     }
 
     return buffer.toUInt8List();
@@ -51,7 +52,10 @@ class _ItemAppdataDecoder extends Converter<List<int>, Iterable<Item>> {
       final name = reader.readString();
       final owner = reader.readBit() ? reader.readString() : null;
 
-      items.add(Item(barcode, name, owner));
+      final statusBits = reader.readBits(ItemStatus.values.length);
+      final status = ItemStatus.values.where((status) => statusBits & (1 << status.index) != 0).toSet();
+
+      items.add(Item(barcode, name, owner, status));
     }
 
     return items;
