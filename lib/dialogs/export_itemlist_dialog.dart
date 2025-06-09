@@ -86,20 +86,19 @@ class _ExportItemlistDialogState extends State<ExportItemlistDialog> {
           child: const Text('Close'),
         ),
         ElevatedButton(
-          onPressed: () {
-            FilePicker.platform
-                .saveFile(
+          onPressed: () async {
+            final path = await FilePicker.platform.saveFile(
               dialogTitle: 'Export item list',
               fileName: '${_controller.text}.csv',
               type: FileType.custom,
               allowedExtensions: ['csv'],
               bytes: _getBytes(),
-            )
-                .then((path) {
-              if (path != null) {
-                Navigator.pop(context);
-              }
-            });
+            );
+
+            if (path != null) {
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            }
           },
           child: const Text('Export'),
         ),

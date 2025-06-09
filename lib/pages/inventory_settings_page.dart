@@ -120,15 +120,15 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
                       ? (row[cols[3]] as String)
                           .split(',')
                           .map((status) => ItemStatus.fromCode(status.trim()))
-                          .whereNotNull()
+                          .nonNulls
                           .toSet()
                       : {},
                 ))
             .toSet(),
       );
     } else if (file.extension == 'inv') {
-      final bytes =
-          file.bytes ?? Uint8List.fromList(await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b)));
+      final bytes = file.bytes ??
+          Uint8List.fromList(await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b)));
 
       _prefs.addInventory(name, bytes: bytes);
     } else {

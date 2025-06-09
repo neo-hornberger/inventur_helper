@@ -15,7 +15,7 @@ class ScanPage extends StatefulWidget {
 class _ScanPageState extends State<ScanPage> {
   bool _processing = false;
 
-  void _onBarcodeScanned(Code barcode) {
+  void _onBarcodeScanned(Code barcode) async {
     if (_processing) {
       return;
     }
@@ -25,41 +25,43 @@ class _ScanPageState extends State<ScanPage> {
     if (barcode.format != Format.qrCode &&
         barcode.format != Format.code128 &&
         barcode.format != Format.dataMatrix) {
-      showDialog(
+      await showDialog(
         context: context,
         builder: (context) => InvalidBarcodeDialog(
           barcode: barcode,
           onButtonPressed: () => Navigator.pop(context),
         ),
-      ).then((_) => _processing = false);
+      );
+      _processing = false;
       return;
     }
 
     final Set<String> items = barcodeToItems(barcode);
 
-    showDialog(
+    final addItem = await showDialog(
       context: context,
       builder: (context) => CheckItemDialog(
         items: items,
         onCancel: () => Navigator.pop(context),
         onAdd: () => Navigator.pop(context, true),
       ),
-    ).then((addItem) {
-      if (addItem == null || !addItem) {
-        _processing = false;
-        return;
-      }
+    );
+    if (addItem == null || !addItem) {
+      _processing = false;
+      return;
+    }
 
-      Navigator.pop(
-        context,
-        items,
-      );
-    });
+    if (!mounted) return;
+    Navigator.pop(
+      context,
+      items,
+    );
   }
 
   @override
   void initState() {
     super.initState();
+
     _processing = false;
   }
 
