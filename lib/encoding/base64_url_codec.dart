@@ -1,29 +1,30 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 const base64url = Base64UrlCodec();
 
-class Base64UrlCodec extends Codec<List<int>, String> {
+class Base64UrlCodec extends Codec<Uint8List, String> {
   const Base64UrlCodec();
 
   @override
-  Converter<List<int>, String> get encoder => const _Base64UrlEncoder();
+  Converter<Uint8List, String> get encoder => const _Base64UrlEncoder();
 
   @override
-  Converter<String, List<int>> get decoder => const _Base64UrlDecoder();
+  Converter<String, Uint8List> get decoder => const _Base64UrlDecoder();
 }
 
-class _Base64UrlEncoder extends Converter<List<int>, String> {
+class _Base64UrlEncoder extends Converter<Uint8List, String> {
   const _Base64UrlEncoder();
 
   @override
-  String convert(List<int> input) => base64Url.encode(input).replaceAll('=', '');
+  String convert(Uint8List input) => base64Url.encode(input).replaceAll('=', '');
 }
 
-class _Base64UrlDecoder extends Converter<String, List<int>> {
+class _Base64UrlDecoder extends Converter<String, Uint8List> {
   const _Base64UrlDecoder();
 
   @override
-  List<int> convert(String input) {
+  Uint8List convert(String input) {
     var output = input;
 
     switch (input.length % 4) {

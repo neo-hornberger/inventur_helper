@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../dialogs/csv_column_import_dialog.dart';
@@ -127,7 +128,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
       );
     } else if (file.extension == 'inv') {
       final bytes =
-          file.bytes ?? await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b));
+          file.bytes ?? Uint8List.fromList(await file.readStream!.fold<List<int>>([], (a, b) => a..addAll(b)));
 
       _prefs.addInventory(name, bytes: bytes);
     } else {

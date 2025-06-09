@@ -62,7 +62,7 @@ class Preferences {
     return file;
   }
 
-  List<int>? _inventory(String name) {
+  Uint8List? _inventory(String name) {
     if (name.isEmpty) {
       return null;
     }
@@ -104,7 +104,7 @@ class Preferences {
     return Inventory(name, itemAppdataCodec.decode(bytes).toSet());
   }
 
-  void addInventory(String name, {List<int>? bytes, Set<Item>? items}) {
+  void addInventory(String name, {Uint8List? bytes, Set<Item>? items}) {
     if (bytes == null && items == null) {
       throw Exception('Either items or bytes must be provided');
     }

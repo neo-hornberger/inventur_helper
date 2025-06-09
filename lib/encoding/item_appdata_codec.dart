@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bits/bits.dart';
 
@@ -6,21 +7,21 @@ import '../models/item.dart';
 
 const itemAppdataCodec = ItemAppdataCodec();
 
-class ItemAppdataCodec extends Codec<Iterable<Item>, List<int>> {
+class ItemAppdataCodec extends Codec<Iterable<Item>, Uint8List> {
   const ItemAppdataCodec();
 
   @override
-  Converter<Iterable<Item>, List<int>> get encoder => const _ItemAppdataEncoder();
+  Converter<Iterable<Item>, Uint8List> get encoder => const _ItemAppdataEncoder();
 
   @override
-  Converter<List<int>, Iterable<Item>> get decoder => const _ItemAppdataDecoder();
+  Converter<Uint8List, Iterable<Item>> get decoder => const _ItemAppdataDecoder();
 }
 
-class _ItemAppdataEncoder extends Converter<Iterable<Item>, List<int>> {
+class _ItemAppdataEncoder extends Converter<Iterable<Item>, Uint8List> {
   const _ItemAppdataEncoder();
 
   @override
-  List<int> convert(Iterable<Item> input) {
+  Uint8List convert(Iterable<Item> input) {
     final buffer = BitBuffer();
     final writer = buffer.writer();
 
@@ -37,11 +38,11 @@ class _ItemAppdataEncoder extends Converter<Iterable<Item>, List<int>> {
   }
 }
 
-class _ItemAppdataDecoder extends Converter<List<int>, Iterable<Item>> {
+class _ItemAppdataDecoder extends Converter<Uint8List, Iterable<Item>> {
   const _ItemAppdataDecoder();
 
   @override
-  Iterable<Item> convert(List<int> input) {
+  Iterable<Item> convert(Uint8List input) {
     final buffer = BitBuffer.fromUInt8List(input);
     final reader = buffer.reader();
     final items = <Item>{};
