@@ -18,13 +18,13 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: ${{ vars.ANDROID_JAVA_VERSION }}
+          distribution: ${{ vars.ANDROID_JAVA_DIST }}
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2'
-          channel: 'stable'
+          flutter-version: ${{ vars.FLUTTER_VERSION }}
+          channel: ${{ vars.FLUTTER_CHANNEL || 'stable' }}
           cache: true
       - name: Install dependencies
         run: flutter pub get
