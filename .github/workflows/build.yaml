@@ -68,9 +68,9 @@ jobs:
         with:
           key: android-sdk-packages-${{ runner.os }}-${{ runner.arch }}
           path: |
-            ~/.android/sdk/ndk/
-            ~/.android/sdk/cmake/
-            ~/.android/sdk/platforms/
+            /usr/local/lib/android/sdk/ndk/
+            /usr/local/lib/android/sdk/cmake/
+            /usr/local/lib/android/sdk/platforms/
       - name: Create artifacts directory
         run: mkdir -p artifacts
       - name: Build APK
