@@ -3,6 +3,7 @@ import java.util.Properties
 
 class AppSettings {
     val namespace: String = "dev.hornberger.inventur_helper"
+    val ndkVersion: String = "27.0.12077973"
     val javaVersion: JavaVersion = JavaVersion.VERSION_17
 }
 
@@ -21,7 +22,7 @@ plugins {
 android {
     namespace = appSettings.namespace
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = appSettings.ndkVersion
 
     compileOptions {
         sourceCompatibility = appSettings.javaVersion
@@ -45,8 +46,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode()
-        versionName = flutter.versionName()
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
     
     signingConfigs {
