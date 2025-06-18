@@ -184,5 +184,6 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "artifacts/*"
           tag: v${{ needs.pre_build.outputs.version }}
+          artifacts: "artifacts/*"
+          generateReleaseNotes: true
