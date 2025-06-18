@@ -134,6 +134,8 @@ jobs:
       - build_android
       - build_ios
     if: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
