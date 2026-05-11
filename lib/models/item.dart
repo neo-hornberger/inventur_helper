@@ -22,19 +22,20 @@ class Item {
 }
 
 enum ItemStatus {
-  available('V'),
-  missing('F'),
-  overstock('ÜB'),
-  oldStock('AB'),
-  nonRetrievable('NV'),
-  noInformation('NI'),
-  invalid('U'),
-  alternative('A'),
-  partial('P');
+  available('V', 'vorhanden'),
+  missing('F', 'fehlt / Fehlbestand'),
+  nonRetrievable('NV', 'nicht verfügbar'),
+  partial('T', 'teilweise'),
+  overstock('ÜB', 'Überbestand'),
+  alternative('A', 'Alternative'),
+  oldStock('AB', 'Altbestand'),
+  invalid('U', 'ungültig'),
+  noInformation('KI', 'keine Information');
 
   final String code;
+  final String description;
 
-  const ItemStatus(this.code);
+  const ItemStatus(this.code, this.description);
 
   static ItemStatus? fromCode(String code) => ItemStatus.values.firstWhereOrNull((status) => status.code == code);
 }
