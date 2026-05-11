@@ -1,9 +1,10 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
 class AppSettings {
     val namespace: String = "dev.hornberger.inventur_helper"
-    val ndkVersion: String = "27.0.12077973"
+    val ndkVersion: String = "28.2.13676358"
     val javaVersion: JavaVersion = JavaVersion.VERSION_17
 }
 
@@ -27,10 +28,6 @@ android {
     compileOptions {
         sourceCompatibility = appSettings.javaVersion
         targetCompatibility = appSettings.javaVersion
-    }
-
-    kotlinOptions {
-        jvmTarget = appSettings.javaVersion.toString()
     }
 
     sourceSets {
@@ -65,6 +62,12 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("release")
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(appSettings.javaVersion.toString())
     }
 }
 
