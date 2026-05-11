@@ -46,14 +46,10 @@ class _ExportItemlistDialogState extends State<ExportItemlistDialog> {
       rows = widget.items.map((item) => [item, null, null, null, true]);
     }
 
-    return utf8.encode(csvCodec.encoder.convert(
-      [
+    return utf8.encode(csvCodec.encoder.convert([
         ['Barcode', 'Description', 'Owner', 'Status', 'Scanned'],
         ...rows,
-      ],
-      delimitAllFields: true,
-      convertNullTo: '',
-    ));
+      ]));
   }
 
   @override
@@ -87,7 +83,7 @@ class _ExportItemlistDialogState extends State<ExportItemlistDialog> {
         ),
         ElevatedButton(
           onPressed: () async {
-            final path = await FilePicker.platform.saveFile(
+            final path = await FilePicker.saveFile(
               dialogTitle: 'Export item list',
               fileName: '${_controller.text}.csv',
               type: FileType.custom,

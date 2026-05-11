@@ -18,7 +18,6 @@ void main() {
         version: installedVersion.toString(),
         buildNumber: '1',
       ),
-      upgraderDevice: MockUpgraderDevice(),
       upgraderOS: MockUpgraderOS(),
     );
 

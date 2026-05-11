@@ -12,10 +12,11 @@ import '../dialogs/remove_dialog.dart';
 import '../models/item.dart';
 import '../preferences.dart';
 
-final CsvCodec csvCodec = CsvCodec(
+final Csv csvCodec = Csv(
   fieldDelimiter: ';',
-  textDelimiter: '"',
-  eol: '\n',
+  lineDelimiter: '\n',
+  quoteCharacter: '"',
+  quoteMode: QuoteMode.always,
 );
 
 final RegExp _barcodeRegExp = RegExp(r'^\d{4}-\d{6}$');
@@ -69,7 +70,7 @@ class _InventorySettingsPageState extends State<InventorySettingsPage> {
       return;
     }
 
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv', 'inv'],
       withReadStream: true,
