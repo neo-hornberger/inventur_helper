@@ -1,9 +1,11 @@
 import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:upgrader/upgrader.dart';
 
 import './pages/home_page.dart';
 import './preferences.dart';
+import './upgrader_store.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +17,19 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final ValueNotifier<String?> _sharedItemsNotifier = ValueNotifier(null);
+  final Upgrader _upgrader = Upgrader(
+    debugLogging: kDebugMode,
+    storeController: UpgraderStoreController(
+      onAndroid: () => UpgraderMultiStore([
+        UpgraderPlayStore(),
+        UpgraderGithubReleasesStore(owner: 'neo-hornberger', repo: 'inventur_helper'),
+      ]),
+      oniOS: () => UpgraderMultiStore([
+        UpgraderAppStore(),
+        UpgraderGithubReleasesStore(owner: 'neo-hornberger', repo: 'inventur_helper'),
+      ]),
+    ),
+  );
 
   MyApp({super.key}) {
     AppLinks().uriLinkStream.listen(_handleAppLink);
@@ -54,9 +69,12 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: MyHomePage(
-        title: 'Inventur Helper',
-        sharedItemsNotifier: _sharedItemsNotifier,
+      home: UpgradeAlert(
+        upgrader: _upgrader,
+        child: MyHomePage(
+          title: 'Inventur Helper',
+          sharedItemsNotifier: _sharedItemsNotifier,
+        ),
       ),
     );
   }

@@ -1,7 +1,7 @@
 name: inventur_helper
 description: Inventur Helper
 publish_to: 'none'
-version: 1.0.0
+version: 1.1.0
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -22,11 +22,15 @@ dependencies:
   screen_brightness:
   app_links:
   share_plus:
+  upgrader:
+  version:
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  package_info_plus:
+  http:
 
 flutter:
   uses-material-design: true
