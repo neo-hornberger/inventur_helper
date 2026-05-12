@@ -61,5 +61,11 @@
 		<string>The camera is needed to scan barcodes</string>
 		<key>FlutterDeepLinkingEnabled</key>
 		<false />
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>The app needs access to the internet</string>
+		<key>NSBonjourServices</key>
+		<array>
+			<string>mqtt.tcp</string>
+		</array>
 	</dict>
 </plist>

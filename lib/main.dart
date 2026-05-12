@@ -12,10 +12,10 @@ void main() async {
 
   await Preferences().init();
 
-  runApp(MyApp());
+  runApp(Application());
 }
 
-class MyApp extends StatelessWidget {
+class Application extends StatelessWidget {
   final ValueNotifier<String?> _sharedItemsNotifier = ValueNotifier(null);
   final Upgrader _upgrader = Upgrader(
     debugLogging: kDebugMode,
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
     ),
   );
 
-  MyApp({super.key}) {
+  Application({super.key}) {
     AppLinks().uriLinkStream.listen(_handleAppLink);
   }
 
@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
       ),
       home: UpgradeAlert(
         upgrader: _upgrader,
-        child: MyHomePage(
+        child: MainPage(
           title: 'Inventur Helper',
           sharedItemsNotifier: _sharedItemsNotifier,
         ),

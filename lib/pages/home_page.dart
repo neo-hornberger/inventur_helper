@@ -1,34 +1,39 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:inventur_helper/dialogs/export_itemlist_dialog.dart';
+import 'package:mqtt_client/mqtt_browser_client.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 
 import '../dialogs/add_barcode_dialog.dart';
 import '../dialogs/check_item_dialog.dart';
 import '../dialogs/clear_itemlist_dialog.dart';
+import '../dialogs/export_itemlist_dialog.dart';
 import '../dialogs/transfer_itemlist_dialog.dart';
 import '../dialogs/remove_dialog.dart';
 import '../encoding/item_qr_codec.dart';
 import '../item_util.dart';
 import '../models/item.dart';
+import '../models/mqtt_connection.dart';
 import '../preferences.dart';
+import '../services/mqtt.dart';
+import './broker_settings_page.dart';
 import './scan_page.dart';
 import './inventory_settings_page.dart';
 
-class MyHomePage extends StatefulWidget {
+class MainPage extends StatefulWidget {
   final String title;
   final ValueNotifier<String?>? sharedItemsNotifier;
 
-  const MyHomePage({
-    super.key,
-    required this.title,
-    this.sharedItemsNotifier,
-  });
+  const MainPage({super.key, required this.title, this.sharedItemsNotifier});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainPageState extends State<MainPage> {
+  MqttService? _mqtt;
+
   void _addItems(Iterable<String> items) => setState(() => Preferences().addItems(items));
 
   void _removeItem(String item) => setState(() => Preferences().removeItem(item));
@@ -36,47 +41,51 @@ class _MyHomePageState extends State<MyHomePage> {
   void _clearItems() => setState(() => Preferences().clearItems());
 
   void _addBarcode() => showDialog(
-        context: context,
-        builder: (context) => AddBarcodeDialog(
-          onCancel: () => Navigator.pop(context),
-          onAdd: (String barcode) {
-            _addItems([barcode]);
-          },
-          onDone: () => Navigator.pop(context),
-        ),
-      );
+    context: context,
+    builder: (context) => AddBarcodeDialog(
+      onCancel: () => Navigator.pop(context),
+      onAdd: (String barcode) {
+        _addItems([barcode]);
+        _mqtt?.publishScan([barcode]);
+      },
+      onDone: () => Navigator.pop(context),
+    ),
+  );
 
   void _scanBarcode() async {
-    final Set<String>? items =
-        await Navigator.push(context, MaterialPageRoute(builder: (context) => const ScanPage()));
+    final Set<String>? items = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ScanPage()),
+    );
 
     if (items == null) return;
 
     _addItems(items);
+    _mqtt?.publishScan(items);
   }
 
   void _removeSelectedItem(String item) => showDialog(
-        context: context,
-        builder: (context) => RemoveDialog.item(
-          item: item,
-          onCancel: () => Navigator.pop(context),
-          onRemove: () {
-            _removeItem(item);
-            Navigator.pop(context);
-          },
-        ),
-      );
+    context: context,
+    builder: (context) => RemoveDialog.item(
+      item: item,
+      onCancel: () => Navigator.pop(context),
+      onRemove: () {
+        _removeItem(item);
+        Navigator.pop(context);
+      },
+    ),
+  );
 
   void _clearScanList() => showDialog(
-        context: context,
-        builder: (context) => ClearItemlistDialog(
-          onCancel: () => Navigator.pop(context),
-          onClear: () {
-            _clearItems();
-            Navigator.pop(context);
-          },
-        ),
-      );
+    context: context,
+    builder: (context) => ClearItemlistDialog(
+      onCancel: () => Navigator.pop(context),
+      onClear: () {
+        _clearItems();
+        Navigator.pop(context);
+      },
+    ),
+  );
 
   void _transferScanList() async {
     ScreenBrightness.instance.setApplicationScreenBrightness(1.0);
@@ -91,54 +100,61 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _exportScanList() => showDialog(
-        context: context,
-        builder: (context) => ExportItemlistDialog(
-          inventory: Preferences().inventory,
-          items: Preferences().items,
-          onCancel: () => Navigator.pop(context),
-        ),
-      );
+    context: context,
+    builder: (context) => ExportItemlistDialog(
+      inventory: Preferences().inventory,
+      items: Preferences().items,
+      onCancel: () => Navigator.pop(context),
+    ),
+  );
 
   void _showInventorySettings() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const InventorySettingsPage()))
-        .then((_) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const InventorySettingsPage()),
+    ).then((_) {
       // Refresh the state of the app when returning from the inventory settings page
       setState(() {});
     });
   }
 
+  void _showBrokerSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const BrokerSettingsPage()),
+    ).then((connData) {
+      if (connData != null && connData is MqttConnectionData) {
+        _mqtt = MqttService(connData, onItemsScanned: _addItems);
+        _mqtt!.connectToBroker();
+      }
+    });
+  }
+
   void _showItem(Item item) => showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(item.barcode),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (item.owner != null)
-                Text(
-                  item.owner!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              Text(
-                item.name ?? 'N/A',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(item.barcode),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (item.owner != null)
+            Text(
+              item.owner!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
             ),
-          ],
-        ),
-      );
+          Text(
+            item.name ?? 'N/A',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
+    ),
+  );
 
   void _importSharedItems() async {
     if (widget.sharedItemsNotifier?.value == null) return;
@@ -195,6 +211,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () => _showInventorySettings(),
                 leadingIcon: const Icon(Icons.inventory_2),
                 child: const Text('Inventories'),
+              ),
+              MenuItemButton(
+                onPressed: () => _showBrokerSettings(),
+                leadingIcon: const Icon(Icons.dns),
+                child: const Text('Broker Settings'),
               ),
               MenuItemButton(
                 onPressed: () => _exportScanList(),
