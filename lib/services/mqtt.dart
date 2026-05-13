@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:mqtt_client/mqtt_browser_client.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
 
 import '../encoding/item_qr_codec.dart';
 import '../models/mqtt_connection.dart';
+import './mqtt/other.dart' if (dart.library.js_interop) './mqtt/web.dart';
 
 class MqttService {
   MqttService(this.connData, {required this.onItemsScanned}) {
@@ -21,32 +20,7 @@ class MqttService {
   void _initClient() {
     final clientId = 'inventur_helper-${DateTime.now().millisecondsSinceEpoch}';
 
-    if (!kIsWeb) {
-      final client = MqttServerClient.withPort(connData.host, clientId, connData.port);
-      _client = client;
-
-      switch (connData.type) {
-        case MqttConnectionType.tcp:
-          client.useWebSocket = false;
-          client.secure = false;
-        case MqttConnectionType.tls:
-          client.useWebSocket = false;
-          client.secure = true;
-        case MqttConnectionType.websocket:
-          client.useWebSocket = true;
-          client.secure = false;
-
-          client.server = 'ws://${client.server}';
-        case MqttConnectionType.wss:
-          client.useWebSocket = true;
-          client.secure = true;
-
-          client.server = 'wss://${client.server}';
-      }
-    } else {
-      _client = MqttBrowserClient.withPort('ws://${connData.host}', clientId, connData.port);
-    }
-
+    _client = newMqttClient(connData, clientId);
     _client.setProtocolV311();
   }
 

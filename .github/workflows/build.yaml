@@ -147,7 +147,7 @@ jobs:
         run: |
           flutter build web --release
           cd build/web
-          tar -czf ../../../artifacts/${{ needs.pre_build.outputs.name }}.web_build.tar.gz .
+          tar -czf ../../artifacts/${{ needs.pre_build.outputs.name }}.web_build.tar.gz .
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -160,6 +160,7 @@ jobs:
       - pre_build
       - build_android
       - build_ios
+      - build_web
     if: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
     permissions:
       contents: write
