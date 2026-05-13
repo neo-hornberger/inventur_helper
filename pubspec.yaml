@@ -10,7 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_zxing:
-  bits:
   barcode_widget:
   shared_preferences:
   path_provider:
@@ -24,6 +23,7 @@ dependencies:
   upgrader:
   version:
   mqtt_client: ^10.11.11
+  buffer: ^1.2.3
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,7 @@
 import 'dart:convert';
+import 'dart:math';
 
-import 'package:bits/bits.dart';
+import 'package:buffer/buffer.dart';
 
 import './base64_url_codec.dart';
 
@@ -16,8 +17,8 @@ class ItemQrCodec extends Codec<Iterable<String>, String> {
   Converter<String, Iterable<String>> get decoder => const _ItemQrDecoder();
 }
 
-final _prefixBitCount = 9999.bitLength;
-final _suffixBitCount = 999999.bitLength;
+final _prefixByteCount = pow(2, (9999.bitLength / 8).floor()).toInt();
+final _suffixByteCount = pow(2, (999999.bitLength / 8).floor()).toInt();
 const _nextPrefixCode = 1000000;
 
 class _ItemQrEncoder extends Converter<Iterable<String>, String> {
@@ -25,8 +26,7 @@ class _ItemQrEncoder extends Converter<Iterable<String>, String> {
 
   @override
   String convert(Iterable<String> input) {
-    final buffer = BitBuffer();
-    final writer = buffer.writer();
+    final writer = ByteDataWriter();
 
     input.fold(<int, Set<int>>{}, (result, code) {
       final splitCode = code.split('-');
@@ -42,17 +42,17 @@ class _ItemQrEncoder extends Converter<Iterable<String>, String> {
       return result;
     }).forEach((prefix, suffixes) {
       // write prefix
-      writer.writeBits(prefix, _prefixBitCount);
+      writer.writeUint(_prefixByteCount, prefix);
 
       // write suffixes
       for (final suffix in suffixes) {
-        writer.writeBits(suffix, _suffixBitCount);
+        writer.writeUint(_suffixByteCount, suffix);
       }
 
-      writer.writeBits(_nextPrefixCode, _suffixBitCount);
+      writer.writeUint(_suffixByteCount, _nextPrefixCode);
     });
 
-    return base64url.encode(buffer.toUInt8List());
+    return base64url.encode(writer.toBytes());
   }
 }
 
@@ -61,18 +61,17 @@ class _ItemQrDecoder extends Converter<String, Iterable<String>> {
 
   @override
   Iterable<String> convert(String input) {
-    final buffer = BitBuffer.fromUInt8List(base64url.decode(input));
-    final reader = _BitReader(buffer);
+    final reader = ByteDataReader()..add(base64url.decode(input));
     final items = <String>{};
 
-    final bitsToRead = buffer.getSize() - _prefixBitCount - _suffixBitCount;
+    final bytesToRead = reader.remainingLength - _prefixByteCount - _suffixByteCount;
 
     var prefix = 0;
     var suffix = 0;
-    while (reader.readCount < bitsToRead) {
-      prefix = reader.readBits(_prefixBitCount);
+    while (reader.offsetInBytes < bytesToRead) {
+      prefix = reader.readUint(_prefixByteCount);
 
-      while ((suffix = reader.readBits(_suffixBitCount)) != _nextPrefixCode) {
+      while ((suffix = reader.readUint(_suffixByteCount)) != _nextPrefixCode) {
         final barcode = '${prefix.toString().padLeft(4, '0')}-${suffix.toString().padLeft(6, '0')}';
 
         items.add(barcode);
@@ -80,37 +79,5 @@ class _ItemQrDecoder extends Converter<String, Iterable<String>> {
     }
 
     return items;
-  }
-}
-
-class _BitReader extends BitBufferReader {
-  int _readCount = 0;
-
-  _BitReader(super.buffer);
-
-  int get readCount => _readCount;
-
-  @override
-  void skip(int bits) {
-    _readCount += bits;
-    super.skip(bits);
-  }
-
-  @override
-  void seekTo(int bit) {
-    _readCount = bit;
-    super.seekTo(bit);
-  }
-
-  @override
-  bool readBit() {
-    _readCount++;
-    return super.readBit();
-  }
-
-  @override
-  int readBits(int bitCount) {
-    _readCount += bitCount;
-    return super.readBits(bitCount);
   }
 }
